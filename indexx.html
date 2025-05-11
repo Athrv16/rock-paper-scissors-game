@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock Paper Scissors</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            text-align: center;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        .game-container {
+            max-width: 500px;
+            margin: auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+        }
+        .choices button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .choices button:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+        .scoreboard {
+            margin-top: 20px;
+            font-size: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        .result {
+            font-size: 24px;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+        .play-again {
+            margin-top: 20px;
+            background: #ffcc00;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: black;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .play-again:hover {
+            background: #ff9900;
+        }
+    </style>
+</head>
+<body>
+
+    <script>
+        window.onload = () => {
+            let userScore = 0;
+            let aiScore = 0;
+            let round = 1;
+    
+            const map = { rock: 0, scissors: 1, paper: 2 };
+    
+            document.querySelectorAll(".choices button").forEach(btn => {
+                btn.onclick = () => {
+                    if (round > 3) return;
+    
+                    const choice = map[btn.id];
+                    fetch("http://localhost:8080/game", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: "choice=" + choice
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById("result").innerText = "Result: " + data.result;
+    
+                        if (data.result === "You win!") userScore++;
+                        else if (data.result === "You lose!") aiScore++;
+    
+                        document.getElementById("score").innerText =
+                            `Your Score: ${userScore} | Computer Score: ${aiScore}`;
+    
+                        document.getElementById("round").innerText = `Round: ${round} / 3`;
+                        round++;
+    
+                        if (round > 3) {
+                            document.querySelectorAll(".choices button").forEach(b => b.disabled = true);
+                            document.getElementById("play-again").style.display = "inline-block";
+                        }
+                    });
+                };
+            });
+    
+            document.getElementById("play-again").onclick = () => {
+                userScore = 0;
+                aiScore = 0;
+                round = 1;
+    
+                document.getElementById("result").innerText = "Choose your move!";
+                document.getElementById("score").innerText = "Your Score: 0 | Computer Score: 0";
+                document.getElementById("round").innerText = "Round: 1 / 3";
+                document.querySelectorAll(".choices button").forEach(b => b.disabled = false);
+                document.getElementById("play-again").style.display = "none";
+            };
+        };
+    </script>
+        <h1>Rock Paper Scissors</h1>
+    <div class="game-container">
+        <p id="round">Round: 1 / 3</p>
+        <div class="choices">
+            <button id="rock">🔳 Rock</button>
+            <button id="scissors">✂️ Scissors</button>
+            <button id="paper">📄 Paper</button>
+        </div>
+        <p class="result" id="result">Choose your move!</p>
+        <div class="scoreboard">
+            <p id="score">Your Score: 0 | Computer Score: 0</p>
+        </div>
+        <button class="play-again" id="play-again" style="display:none;">Play Again</button>
+    </div>
+</body>
+</html>
