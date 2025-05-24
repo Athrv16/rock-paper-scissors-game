@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rock Paper Scissors</title>
+    <link rel="icon" href="Game.png" type="image/x-icon" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+        @keyframes jump {
+            0% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-15px);
+            }
+
+            50% {
+                transform: translateY(0);
+            }
+
+            70% {
+                transform: translateY(-7px);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        .jump {
+            animation: jump 0.5s ease;
+        }
+
+
+        body {
+            text-align: center;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .game-container {
+            max-width: 500px;
+            margin: auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .choices button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            padding: 15px 30px;
+            margin: 10px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .choices button:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .scoreboard {
+            margin-top: 20px;
+            font-size: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .result {
+            font-size: 24px;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+
+        .play-again {
+            margin-top: 20px;
+            background: #ffcc00;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: black;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .play-again:hover {
+            background: #ff9900;
+        }
+
+        /* Confetti container full screen overlay */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* Modal popup dialog */
+        .win-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .win-dialog-content {
+            background: white;
+            color: #333;
+            padding: 30px 50px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            font-size: 32px;
+            font-weight: 700;
+            position: relative;
+            min-width: 280px;
+            text-align: center;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            color: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <audio id="win-sound" src="WinSound.wav"></audio>
+
+
+
+
+    <h1>Rock Paper Scissors</h1>
+    <div class="game-container">
+        <p id="round">Round: 1 / 3</p>
+        <div class="choices">
+            <button id="rock">🪨 Rock</button>
+            <button id="scissors">✂️ Scissors</button>
+            <button id="paper">📄 Paper</button>
+        </div>
+        <p id="user-choice" style="font-size: 20px; margin-top: 10px;">You chose: ❓</p>
+        <p id="computer-choice" style="font-size: 20px; margin-top: 10px;">Computer chose: ❓</p>
+
+        <p class="result" id="result">Choose your move!</p>
+        <!-- <p id="computer-choice" style="font-size: 20px; margin-top: 10px;">Computer chose: ❓</p> -->
+
+        <div class="scoreboard">
+            <p id="score">Your Score: 0 | Computer Score: 0</p>
+        </div>
+        <button class="play-again" id="play-again" style="display:none;">Play Again</button>
+    </div>
+
+    <!-- Win popup dialog -->
+    <div id="win-dialog" class="win-dialog">
+        <div class="win-dialog-content">
+            <span class="close-btn" id="win-close-btn">&times;</span>
+            <p>🎉 You Win! 🎉</p>
+        </div>
+    </div>
+
+    <!-- Draw popup dialog -->
+    <div id="draw-dialog" class="win-dialog">
+        <div class="win-dialog-content">
+            <span class="close-btn" id="draw-close-btn">&times;</span>
+            <p>🤝 It's a Draw! 🤝</p>
+        </div>
+    </div>
+
+    <!-- Lose popup dialog -->
+    <div id="lose-dialog" class="win-dialog">
+        <div class="win-dialog-content">
+            <span class="close-btn" id="lose-close-btn">&times;</span>
+            <p>😞 You Lose! 😞</p>
+        </div>
+    </div>
+
+    <!-- Confetti canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <script>
+        function getResultText(result) {
+            const messages = {
+                "You win!": ["🔥 You crushed it!", "💪 Victory is yours!", "🎉 Nice shot!", "🏆 You're a legend!"],
+                "You lose!": ["🤖 The bot wins this round.", "💥 Ouch! Try again.", "😓 You got outplayed.", "👎 Better luck next time!"],
+                "Draw!": ["😐 It's a draw!", "🔁 Try again.", "😅 Same move?", "🤷 Equal minds think alike!"]
+            };
+            const options = messages[result];
+            return options[Math.floor(Math.random() * options.length)];
+        }
+
+        window.onload = () => {
+            let userScore = 0;
+            let aiScore = 0;
+            let round = 1;
+
+            const map = { rock: 0, scissors: 1, paper: 2 };
+
+            // Confetti setup
+            const confettiCanvas = document.getElementById('confetti-canvas');
+            const ctx = confettiCanvas.getContext('2d');
+            let confettiPieces = [];
+            let confettiAnimationId;
+            let confettiHue = 120; // green hue for win confetti
+
+            function resizeCanvas() {
+                confettiCanvas.width = window.innerWidth;
+                confettiCanvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            class ConfettiPiece {
+                constructor() {
+                    this.x = Math.random() * confettiCanvas.width;
+                    this.y = Math.random() * -confettiCanvas.height;
+                    this.size = 8 + Math.random() * 8;
+                    this.speed = 2 + Math.random() * 3;
+                    this.angle = Math.random() * 360;
+                    this.color = `hsl(${confettiHue + Math.floor(Math.random() * 30)}, 70%, 60%)`;
+                    this.tilt = Math.random() * 10 - 10;
+                }
+                update() {
+                    this.y += this.speed;
+                    this.angle += 2;
+                    if (this.y > confettiCanvas.height) {
+                        this.y = 0;
+                        this.x = Math.random() * confettiCanvas.width;
+                    }
+                }
+                draw() {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.rotate(this.angle * Math.PI / 180);
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(this.tilt, 0, this.size, this.size / 2);
+                    ctx.restore();
+                }
+            }
+
+            function createConfetti() {
+                confettiPieces = [];
+                for (let i = 0; i < 150; i++) {
+                    confettiPieces.push(new ConfettiPiece());
+                }
+            }
+
+            function animateConfetti() {
+                ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+                confettiPieces.forEach(piece => {
+                    piece.update();
+                    piece.draw();
+                });
+                confettiAnimationId = requestAnimationFrame(animateConfetti);
+            }
+
+            function startConfetti() {
+                createConfetti();
+                animateConfetti();
+            }
+
+            function stopConfetti() {
+                cancelAnimationFrame(confettiAnimationId);
+                ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            }
+
+            // Dialog elements
+            const dialogs = {
+                win: document.getElementById('win-dialog'),
+                draw: document.getElementById('draw-dialog'),
+                lose: document.getElementById('lose-dialog'),
+            };
+
+            const closeButtons = {
+                win: document.getElementById('win-close-btn'),
+                draw: document.getElementById('draw-close-btn'),
+                lose: document.getElementById('lose-close-btn'),
+            };
+
+            function showDialog(type) {
+                dialogs[type].style.display = 'flex';
+                if (type === 'win') {
+                    startConfetti();
+                    document.getElementById("win-sound").play();
+                }
+
+            }
+
+            function hideDialog(type) {
+                dialogs[type].style.display = 'none';
+                if (type === 'win') {
+                    stopConfetti();
+                    document.getElementById("WinSound.wav").play();
+                }
+            }
+
+            // Attach close button handlers
+            for (const type in closeButtons) {
+                closeButtons[type].onclick = () => {
+                    hideDialog(type);
+                };
+            }
+
+            document.querySelectorAll(".choices button").forEach(btn => {
+                btn.onclick = () => {
+                    if (round > 3) return;
+
+                    const choice = map[btn.id];
+                    fetch("http://localhost:8080/game", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: "choice=" + choice
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            const funText = getResultText(data.result);
+                            document.getElementById("result").innerText = funText;
+
+
+
+                            const choiceMap = ["🪨 Rock", "✂️ Scissors", "📄 Paper"];
+                            document.getElementById("user-choice").innerText = "You chose: " + choiceMap[choice];
+                            document.getElementById("computer-choice").innerText = "Computer chose: " + choiceMap[data.computerChoice];
+
+
+                            if (data.result === "You win!") userScore++;
+                            else if (data.result === "You lose!") aiScore++;
+
+                            const scoreElement = document.getElementById("score");
+                            scoreElement.innerText = `Your Score: ${userScore} | Computer Score: ${aiScore}`;
+
+                            // Add jumping animation
+                            scoreElement.classList.add("jump");
+
+                            // Remove animation class after it's done to allow it again on next update
+                            setTimeout(() => {
+                                scoreElement.classList.remove("jump");
+                            }, 500);
+
+                            document.getElementById("round").innerText = `Round: ${round} / 3`;
+                            round++;
+
+                            if (round > 3) {
+                                document.querySelectorAll(".choices button").forEach(b => b.disabled = true);
+                                document.getElementById("play-again").style.display = "inline-block";
+
+                                // Show result popup based on final scores
+                                if (userScore > aiScore) showDialog('win');
+                                else if (userScore === aiScore) showDialog('draw');
+                                else showDialog('lose');
+                            }
+                        })
+                        .catch(err => {
+                            alert("Error: " + err);
+                        });
+                };
+            });
+
+            document.getElementById("play-again").onclick = () => {
+                userScore = 0;
+                aiScore = 0;
+                round = 1;
+                document.getElementById("result").innerText = "Choose your move!";
+                document.getElementById("score").innerText = `Your Score: 0 | Computer Score: 0`;
+                document.getElementById("round").innerText = `Round: 1 / 3`;
+                document.getElementById("user-choice").innerText = "You chose: ❓";
+                document.getElementById("computer-choice").innerText = "Computer chose: ❓";
+
+                
+
+                /* 
+                 const compElem = document.getElementById("computer-choice");
+                compElem.classList.add("jump");
+                setTimeout(() => compElem.classList.remove("jump"), 500); 
+                */
+
+                document.querySelectorAll(".choices button").forEach(b => b.disabled = false);
+                document.getElementById("play-again").style.display = "none";
+            };
+        };
+    </script>
+</body>
+
+</html>
